@@ -1,12 +1,26 @@
 # FINAL FANTASY VII REBIRTH: DLSS 5 Neural Rendering (RenodX)
 
-**What is this?** A one click install that adds NVIDIA **DLSS 5 "Neural Rendering"** to *FINAL FANTASY VII Rebirth* on PC: neural upscaling and relighting on top of the DLSS the game already ships, driven by [ReShade](https://github.com/crosire/reshade) 6.8, [RenoDX](https://github.com/clshortfuse/renodx) (the official FF7 Rebirth build) and the community **"DLSS 5 Neural Rendering" addon v2.5** from the RenoDX Discord.
+**What is this?** A one command (or one file) install that adds NVIDIA **DLSS 5 "Neural Rendering"** to *FINAL FANTASY VII Rebirth* on PC: neural upscaling and relighting on top of the DLSS the game already ships, driven by [ReShade](https://github.com/crosire/reshade) 6.8, [RenoDX](https://github.com/clshortfuse/renodx) (the official FF7 Rebirth build) and the community **"DLSS 5 Neural Rendering" addon v2.5** from the RenoDX Discord.
 
 > **EXPERIMENTAL.** The DLSS 5 addon is an early community build. Expect rough edges and updates. This project is not affiliated with Square Enix, NVIDIA or the RenoDX project.
 >
 > **Repo:** https://github.com/zhubaohi/FF7R-DLSS5 | **Release assets:** https://github.com/zhubaohi/FF7R-DLSS5/releases/tag/v1 | **Install file for players:** https://raw.githubusercontent.com/zhubaohi/FF7R-DLSS5/main/install.bat
 
-## Install (players): 2 steps
+## Install (players)
+
+Two ways to install, both equally simple. Both download everything they need from this GitHub repo during the install (about 160 MB).
+
+### Method 1: one command
+
+Copy this single line and run it in PowerShell or cmd, from any folder:
+
+```
+powershell -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol=3072; iwr 'https://raw.githubusercontent.com/zhubaohi/FF7R-DLSS5/main/install.ps1' -UseBasicParsing -OutFile ([Environment]::GetEnvironmentVariable('TEMP') + '\ff7r-dlss5-install.ps1'); & ([Environment]::GetEnvironmentVariable('TEMP') + '\ff7r-dlss5-install.ps1')"
+```
+
+It finds your game automatically (Steam and Epic installs) or asks you to paste the game folder path. To point at a specific folder, add ` -GameDir 'C:\path\to\your game folder'` just before the closing double quote.
+
+### Method 2: one file
 
 1. Download `install.bat` from this repo.
 2. Put it into your **FF7R game folder** (the folder that contains `End\Binaries\Win64\ff7rebirth_.exe`) and **double click it**.
@@ -23,17 +37,7 @@ That's all. No administrator rights needed, no manual file copying. The bat down
 | 6 | Applies the **`ReShade.ini` fix** (`[ADDON] LoadFromDllMain`). Mandatory: without it the addon fails in game with error 225. Your original ini is backed up as `ReShade.ini.dlss5kit.bak` |
 | 7 | Runs a final verification checklist |
 
-Files are downloaded from this GitHub repo (ReShade additionally falls back to the official reshade.me) and are cached in `%LOCALAPPDATA%\FF7R-DLSS5Kit`. The game folder only receives the files the mod actually needs.
-
-## Install with one command (optional, terminal users)
-
-Copy and paste this single line into PowerShell or cmd and run it. It fetches the installer from this repo and runs it, so this method needs internet:
-
-```
-powershell -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol=3072; iwr 'https://raw.githubusercontent.com/zhubaohi/FF7R-DLSS5/main/install.ps1' -UseBasicParsing -OutFile ([Environment]::GetEnvironmentVariable('TEMP') + '\ff7r-dlss5-install.ps1'); & ([Environment]::GetEnvironmentVariable('TEMP') + '\ff7r-dlss5-install.ps1')"
-```
-
-The installer finds your game automatically (Steam and Epic installs) or asks you to paste the game folder path. To point at a specific folder, add ` -GameDir 'C:\path\to\your game folder'` just before the closing double quote.
+Files are downloaded from this GitHub repo (ReShade additionally falls back to the official reshade.me) and are cached in `%LOCALAPPDATA%\FF7R-DLSS5Kit`. Both methods behave exactly the same; the game folder only receives the files the mod actually needs.
 
 ## Requirements
 
