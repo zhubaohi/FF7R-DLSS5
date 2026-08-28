@@ -113,4 +113,4 @@ To **republish under a different GitHub account**: create a public repo (any nam
 | NVIDIA DLSS/Streamline SDK 310.8 | the same files the game ships in `Engine\Plugins\DLSSSubset` (11 DLLs + 3 license files) | installed in full so the kit works on any install |
 | `LoadFromDllMain` ini fix | found while troubleshooting | the FF7R game inits its DLSS SDK before device creation; ReShade 6.8's `[ADDON] LoadFromDllMain` makes the proxy load the addon from `DllMain` (process start), which is required for the addon to succeed |
 
-**Credits:** [crosire — ReShade](https://github.com/crosire/reshade) · [Carlos Lopez — RenoDX](https://github.com/clshortfuse/renodx) · "DLSS 5 Neural Rendering" addon (v2.5) from the RenoDX Discord · NVIDIA DLSS/Streamline SDK 310.8.
+**Credits:** [crosire — ReShade](https://github.com/crosire/reshade) · [shortfuse (Carlos Lopez) — RenoDX](https://github.com/clshortfuse/renodx) · **speedlemur** — the original DLSS 5 implementation (Control) · **lecram** — the generic DLSS 5 addon used in other games (this mod builds on that line of work) · "DLSS 5 Neural Rendering" addon v2.5 (RenoDX Discord) · NVIDIA DLSS/Streamline SDK 310.8.
