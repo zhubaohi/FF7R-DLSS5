@@ -50,10 +50,14 @@ $script:CacheDir = $CacheDir
 $script:SetupFile    = 'ReShade_Setup_6.8.0_Addon.exe'
 $script:MainFile     = 'renodx-ff7rebirth.addon64'
 $script:DlssFile     = 'renodx-dlss5-v2.5.addon64'
-$script:RequiredDlls = @(
+# The complete NVIDIA Streamline/DLSS 310.8 set (14 files): the 11 runtime
+# DLLs plus 3 license files.  Copying the whole set is what was tested and
+# proven working in-game, so the installer installs all of it.
+$script:NvidiaFiles = @(
     'nvngx_dlss.dll','nvngx_dlssg.dll','nvngx_dlssnr.dll',
     'sl.common.dll','sl.dlss.dll','sl.dlss_g.dll','sl.dlss_nr.dll',
-    'sl.interposer.dll','sl.nis.dll','sl.pcl.dll','sl.reflex.dll'
+    'sl.interposer.dll','sl.nis.dll','sl.pcl.dll','sl.reflex.dll',
+    'nis.license.txt','nvngx_dlss.license.txt','reflex.license.txt'
 )
 $OneMB = 1MB
 
@@ -384,7 +388,7 @@ if ($needNvidia) {
         Expand-Archive -Path $nvidiaZip -DestinationPath $stage -Force
     }
     $missing = @()
-    foreach ($dll in $script:RequiredDlls) {
+    foreach ($dll in $script:NvidiaFiles) {
         $src = Join-Path $stage $dll
         if (Test-Path $src) { Copy-Item $src (Join-Path $script:Win64 $dll) -Force }
         else { $missing += $dll }
@@ -397,7 +401,7 @@ if ($needNvidia) {
 elseif ($nvGameDir) {
     Write-Step "Installing NVIDIA DLSS SDK files (310.8, from your game)"
     $missing = @()
-    foreach ($dll in $script:RequiredDlls) {
+    foreach ($dll in $script:NvidiaFiles) {
         $src = Join-Path $nvGameDir $dll
         if (Test-Path $src) { Copy-Item $src (Join-Path $script:Win64 $dll) -Force }
         else { $missing += $dll }

@@ -4,7 +4,8 @@
 #  Removes what install.ps1 added:
 #    - renodx-dlss5-v2.5.addon64
 #    - renodx-ff7rebirth.addon64           (kept only with -KeepRenoDX)
-#    - the 11 nvngx_*.dll / sl.*.dll copies (kept only with -KeepNvidiaDlls)
+#    - the NVIDIA 310.8 files: 11 nvngx_*/sl.* DLLs + 3 license txts
+#      (kept only with -KeepNvidiaDlls)
 #    - restores your original ReShade.ini (from ReShade.ini.dlss5kit.bak)
 #      (when no backup exists it just removes our LoadFromDllMain entry)
 #    - removes the generated uninstall-dlss5.ps1
@@ -30,10 +31,13 @@ $ErrorActionPreference = 'Stop'
 $script:Yes = [bool]$Yes
 $script:DlssFile   = 'renodx-dlss5-v2.5.addon64'
 $script:MainFile   = 'renodx-ff7rebirth.addon64'
-$script:RequiredDlls = @(
+# The complete NVIDIA Streamline/DLSS 310.8 set (14 files): 11 runtime DLLs
+# + 3 license files (matches what install.ps1 installs).
+$script:NvidiaFiles = @(
     'nvngx_dlss.dll','nvngx_dlssg.dll','nvngx_dlssnr.dll',
     'sl.common.dll','sl.dlss.dll','sl.dlss_g.dll','sl.dlss_nr.dll',
-    'sl.interposer.dll','sl.nis.dll','sl.pcl.dll','sl.reflex.dll'
+    'sl.interposer.dll','sl.nis.dll','sl.pcl.dll','sl.reflex.dll',
+    'nis.license.txt','nvngx_dlss.license.txt','reflex.license.txt'
 )
 
 Write-Host ""
@@ -149,7 +153,7 @@ elseif (Test-Path (Join-Path $script:Win64 $script:MainFile)) {
 
 # --- nvidia dlls ---------------------------------------------------------
 if (-not $KeepNvidiaDlls) {
-    foreach ($dll in $script:RequiredDlls) {
+    foreach ($dll in $script:NvidiaFiles) {
         $p = Join-Path $script:Win64 $dll
         if (Test-Path $p) {
             Remove-Item $p -Force

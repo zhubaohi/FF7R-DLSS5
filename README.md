@@ -71,7 +71,7 @@ Files are downloaded from this GitHub repo (ReShade additionally falls back to t
 
 ## Uninstall
 
-Double-click **`uninstall-dlss5.bat`** (the installer creates it in your game folder). It removes both addons, the 11 `nvngx_*/sl.*` DLLs, restores your original `ReShade.ini` from the backup, and deletes the generated helper file. ReShade itself is kept (other mods may use it).
+Double-click **`uninstall-dlss5.bat`** (the installer creates it in your game folder). It removes both addons, the 14 NVIDIA SDK files (11 `nvngx_*/sl.*` DLLs + license txts), restores your original `ReShade.ini` from the backup, and deletes the generated helper file. ReShade itself is kept (other mods may use it).
 
 ---
 
