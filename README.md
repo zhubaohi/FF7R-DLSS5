@@ -3,6 +3,8 @@
 **What is this?** A one-click install that adds NVIDIA **DLSS 5 "Neural Rendering"** post-processing to *FINAL FANTASY VII Rebirth* on PC — neural upscaling / re-lighting on top of the game's built-in DLSS, driven by [ReShade](https://github.com/crosire/reshade) 6.8, [RenoDX](https://github.com/clshortfuse/renodx) (FF7 Rebirth build) and the community **"DLSS 5 Neural Rendering" addon v2.5** (from the RenoDX Discord).
 
 > ⚠️ **Experimental.** The DLSS 5 addon is an early community build. Expect rough edges and updates. This project is **not** affiliated with Square Enix, NVIDIA or the RenoDX project.
+>
+> **Repo:** https://github.com/zhubaohi/FF7R-DLSS5 · **Release assets:** https://github.com/zhubaohi/FF7R-DLSS5/releases/tag/v1 · **Install file for players:** https://raw.githubusercontent.com/zhubaohi/FF7R-DLSS5/main/install.bat
 
 ---
 
@@ -73,29 +75,24 @@ Double-click **`uninstall-dlss5.bat`** (the installer creates it in your game fo
 
 ---
 
-## For the repo owner (publishing this)
+## For the repo owner (publishing / updating this)
 
-Everything the installer downloads lives in the `files/` set. One-time setup:
-
-1. **Create a public GitHub repo** (name it `FF7R-DLSS5`, or edit `GH_REPO` in `install.bat` to match yours).
-2. **Commit to the repo** (any branch, default `main`): `install.ps1`, `uninstall.ps1`, `README.md`.
-3. **Create a release named `v1`** and upload these files from the `files/` folder as release assets:
-   - `ReShade_Setup_6.8.0_Addon.exe` (4.3 MB)
-   - `renodx-ff7rebirth.addon64` (4.1 MB, official RenoDX snapshot)
-   - `renodx-dlss5-v2.5.addon64` (382 KB, community addon from the RenoDX Discord)
-   - `nvidia.zip` (142.7 MB) — **upload via the GitHub CLI** (`gh release upload v1 files\nvidia.zip`); the web upload UI caps files at 100 MB
-   - *or* upload `nvidia-part1.zip` + `nvidia-part2.zip` (73/76 MB) via the web UI instead — the installer detects and merges them automatically
-4. **Edit `install.bat`**: replace `YOUR_GITHUB_USERNAME` with your GitHub username (line in the header block). That single file is what players download.
-5. Done. Players drop `install.bat` into their game folder and double-click.
-
-The scripts look like this:
+The live source is **https://github.com/zhubaohi/FF7R-DLSS5** — repo files (`install.ps1`, `uninstall.ps1`, `README.md`, the bats) live on `main`, and all binaries live as **release assets on tag `v1`**. The install script resolves everything through:
 
 ```
-https://github.com/<you>/FF7R-DLSS5/raw/main/install.ps1          (repo file)
-https://github.com/<you>/FF7R-DLSS5/releases/download/v1/<file>   (release assets)
+https://github.com/zhubaohi/FF7R-DLSS5/raw/main/<file>           (repo files)
+https://github.com/zhubaohi/FF7R-DLSS5/releases/download/v1/<file> (release assets)
 ```
 
-### File hashes (SHA-256, verify after upload)
+To **update a file** (e.g. a newer RenoDX snapshot or addon):
+
+1. Put the new file in your local `files/` set and verify its SHA-256 (`Get-FileHash`), updating the hash table in this README.
+2. Upload it to the **same release tag** — either replace the asset on `v1` (delete the old asset on the release page, re-upload; or `gh release upload v1 <file> --clobber`) or create a new release and bump `v1` → `v2` in `install.ps1` (`$script:ReleaseUrl = "$script:RepoUrl/releases/download/v2"`).
+3. Commit this README + any changed scripts to `main` and push — `install.bat` always fetches the scripts from `main`, so script fixes reach players without re-downloading the 143 MB zip.
+
+To **republish under a different GitHub account**: create a public repo (any name), commit the three text files + both bats (edit `GH_USER`/`GH_REPO` in the bats), create release `v1`, upload the `files/` set (nvidia.zip via `gh release upload`, or the two part-files via the web UI).
+
+### File hashes (SHA-256, as published on release v1)
 
 | File | SHA-256 |
 |---|---|
