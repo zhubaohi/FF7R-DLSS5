@@ -8,12 +8,8 @@ rem
 rem  HOW TO USE (players):
 rem    1. Put this file into your FF7R game folder (the one that
 rem       contains  End\Binaries\Win64\ff7rebirth_.exe  )
-rem    2. Double-click it.
-rem
-rem  HOW TO SHARE (you, the repo owner):
-rem    Open this file in Notepad and change zhubaohi
-rem    on the next line to your real GitHub username, save, then
-rem    share this file.  Players double-click it and that's all.
+rem    2. Double-click it. It downloads everything from GitHub and
+rem       installs the mod. That's all.
 rem ============================================================
 set "GH_USER=zhubaohi"
 set "GH_REPO=FF7R-DLSS5"
@@ -30,7 +26,6 @@ if not exist install.ps1 (
   echo Could not download install.ps1.
   echo  - check your internet connection
   echo  - make sure the GitHub repo %GH_USER%/%GH_REPO% is public
-  echo  - if you are the repo owner: make sure you uploaded install.ps1 to the repo
   echo.
   goto :end
 )

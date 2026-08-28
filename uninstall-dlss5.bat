@@ -9,9 +9,6 @@ rem  this file - the installer creates its own uninstall-dlss5.bat
 rem  in the game folder with the correct GitHub URL already set.
 rem  Use this standalone copy only if you want to remove the mod
 rem  on a machine where the installer bat was lost.
-rem
-rem  Change zhubaohi to your real GitHub username
-rem  before sharing this file.
 rem ============================================================
 set "GH_USER=zhubaohi"
 set "GH_REPO=FF7R-DLSS5"
