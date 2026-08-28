@@ -317,12 +317,19 @@ if ($script:GameRoot) {
         if (Test-Path (Join-Path $c 'nvngx_dlssnr.dll')) { $nvGameDir = $c; break }
     }
 }
+# Always install the known good 310.8 set that ships with this mod: in the
+# vast majority of installs the user's own game files are missing or stale,
+# and the proven set is the one we carry.  Only skip when the complete set
+# is already placed next to the addon by a previous install.
 $needNvidia = $true
 if ($nvGameDir) {
-    Write-Ok "your game already ships the NVIDIA files - they will be copied next to the addon (no download needed)"
-    $needNvidia = $false
+    Write-Ok "your game ships NVIDIA files too, but this mod installs the known good set it carries"
 }
-elseif (Test-Path (Join-Path $script:Win64 'nvngx_dlssnr.dll')) {
+$alreadyFull = $true
+foreach ($dll in $script:NvidiaFiles) {
+    if (-not (Test-Path (Join-Path $script:Win64 $dll))) { $alreadyFull = $false; break }
+}
+if ($alreadyFull) {
     Write-Ok "NVIDIA files already sit next to the addon - nothing to do"
     $needNvidia = $false
 }
@@ -443,17 +450,6 @@ if ($needNvidia) {
     if ($missing -contains 'nvngx_dlssnr.dll') {
         Write-Warn "nvngx_dlssnr.dll is missing - Neural Rendering will NOT work until this is fixed."
     } elseif ($missing.Count -gt 0) { Write-Warn "Not found: $($missing -join ', ')" }
-}
-elseif ($nvGameDir) {
-    Write-Step "Installing NVIDIA DLSS SDK files (310.8, from your game)"
-    $missing = @()
-    foreach ($dll in $script:NvidiaFiles) {
-        $src = Join-Path $nvGameDir $dll
-        if (Test-Path $src) { Copy-Item $src (Join-Path $script:Win64 $dll) -Force }
-        else { $missing += $dll }
-    }
-    Write-Ok "your game's own SDK files placed next to the addon"
-    if ($missing.Count -gt 0) { Write-Warn "Not found: $($missing -join ', ')" }
 }
 
 # ---------------------------- 8. reshade.ini fix -----------------------------
