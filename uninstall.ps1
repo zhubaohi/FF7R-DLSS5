@@ -8,7 +8,7 @@
 #      (kept only with -KeepNvidiaDlls)
 #    - restores your original ReShade.ini (from ReShade.ini.dlss5kit.bak)
 #      (when no backup exists it just removes our LoadFromDllMain entry)
-#    - removes the generated uninstall-dlss5.ps1
+#    - removes the generated uninstall helper scripts
 #
 #  ReShade itself (d3d12.dll & co.) is NOT removed - it is a general tool
 #  and other mods may use it.  To remove ReShade too, run the ReShade
@@ -211,10 +211,12 @@ else {
 }
 
 # --- generated helper files ----------------------------------------------
-$genPs1 = Join-Path $PSScriptRoot 'uninstall-dlss5.ps1'
-if ($PSScriptRoot -and (Test-Path $genPs1)) {
-    Remove-Item $genPs1 -Force
-    Write-Host "  [OK] removed generated uninstall-dlss5.ps1" -ForegroundColor Green
+foreach ($name in @('uninstall-dlss5.ps1', 'uninstall.ps1')) {
+    $genPs1 = Join-Path $PSScriptRoot $name
+    if ($PSScriptRoot -and (Test-Path $genPs1)) {
+        Remove-Item $genPs1 -Force
+        Write-Host "  [OK] removed $name" -ForegroundColor Green
+    }
 }
 
 Write-Host ""

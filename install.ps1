@@ -47,6 +47,15 @@ $script:RawUrl     = "$script:RepoUrl/raw/main"
 if (-not $CacheDir) { $CacheDir = Join-Path $env:LOCALAPPDATA 'FF7R-DLSS5Kit' }
 $script:CacheDir = $CacheDir
 
+# Offline (Nexus) mode: when the script sits next to a 'files' folder that
+# holds all the artifacts (the Nexus bundle layout), the installer NEVER
+# touches the internet and copies everything from the local bundle.
+$script:OfflineDir = $null
+if (Test-Path (Join-Path $PSScriptRoot 'files')) {
+    $script:OfflineDir = (Resolve-Path (Join-Path $PSScriptRoot 'files')).Path
+}
+$script:Offline = [bool]$script:OfflineDir
+
 $script:SetupFile    = 'ReShade_Setup_6.8.0_Addon.exe'
 $script:MainFile     = 'renodx-ff7rebirth.addon64'
 $script:DlssFile     = 'renodx-dlss5-v2.5.addon64'
@@ -189,10 +198,37 @@ function Invoke-FileDownload([string[]]$urls, [string]$dest, [long]$minSize) {
     return $null
 }
 
+# Resolves one artifact: cache first, then the local bundle (offline mode),
+# then a download. Returns the cache path, or $null when not obtainable.
+function Get-Artifact([string]$name, [string[]]$urls, [long]$minSize) {
+    $dest = Join-Path $script:CacheDir $name
+    if (Test-Path $dest) {
+        if ((Get-Item $dest).Length -ge $minSize) { return $dest }
+        Remove-Item $dest -Force -ErrorAction SilentlyContinue
+    }
+    if ($script:OfflineDir) {
+        $local = Join-Path $script:OfflineDir $name
+        if (Test-Path $local) {
+            if ((Get-Item $local).Length -ge $minSize) {
+                Write-Host "  from local bundle: $name"
+                Copy-Item $local $dest -Force
+                return $dest
+            }
+            Fail "$name in the local bundle is too small - the bundle may be incomplete."
+        }
+        Fail "Offline mode: $name is missing from the local bundle (expected in: $script:OfflineDir)."
+    }
+    return (Invoke-FileDownload $urls $dest $minSize)
+}
+
 Write-Host ""
 Write-Host "FF7 Rebirth - DLSS 5 Neural Rendering (RenodX) - Installer" -ForegroundColor Magenta
-Write-Host "Source: $script:RepoUrl"
-if ($script:RepoIsPlaceholder) { Write-Warn "repo URL is still the placeholder - make sure you edited install.bat" }
+if ($script:Offline) {
+    Write-Host "Mode: offline bundle (no internet needed) - $script:OfflineDir"
+} else {
+    Write-Host "Source: $script:RepoUrl"
+    if ($script:RepoIsPlaceholder) { Write-Warn "repo URL is still the placeholder - make sure you edited install.bat" }
+}
 
 # ---------------------------- 1. locate game -------------------------------
 Write-Step "Locating FINAL FANTASY VII REBIRTH"
@@ -269,7 +305,7 @@ if ((Test-Path $reshadeIni) -and (Test-Path $reshadeDll)) {
 }
 
 # ---------------------------- 4. downloads ----------------------------------
-Write-Step "Downloading files"
+if ($script:Offline) { Write-Step "Preparing files (offline bundle)" } else { Write-Step "Downloading files" }
 New-Item -ItemType Directory -Force -Path $script:CacheDir | Out-Null
 
 # nvidia dlls: prefer the game's own copies
@@ -288,58 +324,45 @@ elseif (Test-Path (Join-Path $script:Win64 'nvngx_dlssnr.dll')) {
     $needNvidia = $false
 }
 
-$setupExe = Join-Path $script:CacheDir $script:SetupFile
-if (-not (Test-Path $setupExe)) {
-    $got = Invoke-FileDownload @(
-        "$($script:ReleaseUrl)/$($script:SetupFile)",
-        'https://www.reshade.me/releases/ReShade-6.8.0-Addon-setup.exe'
-    ) $setupExe $OneMB
-    if (-not $got) { Fail "Could not download the ReShade 6.8.0 installer." }
-    $setupExe = $got
-}
+$setupExe = Get-Artifact $script:SetupFile @(
+    "$($script:ReleaseUrl)/$($script:SetupFile)",
+    'https://www.reshade.me/releases/ReShade-6.8.0-Addon-setup.exe'
+) $OneMB
+if (-not $setupExe) { Fail "Could not obtain the ReShade 6.8.0 installer." }
 Write-Ok "ReShade setup ready"
 
-$addonMain = $null
-$addonDlss = $null
-$c1 = Join-Path $script:CacheDir $script:MainFile
-$c2 = Join-Path $script:CacheDir $script:DlssFile
-if (-not (Test-Path $c1)) {
-    if (-not (Invoke-FileDownload @("$($script:ReleaseUrl)/$($script:MainFile)") $c1 100KB)) {
-        Fail "Could not download $script:MainFile."
-    }
-}
-if (-not (Test-Path $c2)) {
-    if (-not (Invoke-FileDownload @("$($script:ReleaseUrl)/$($script:DlssFile)") $c2 100KB)) {
-        Fail "Could not download $script:DlssFile."
-    }
-}
+$c1 = Get-Artifact $script:MainFile @("$($script:ReleaseUrl)/$($script:MainFile)") 100KB
+if (-not $c1) { Fail "Could not obtain $script:MainFile." }
+$c2 = Get-Artifact $script:DlssFile @("$($script:ReleaseUrl)/$($script:DlssFile)") 100KB
+if (-not $c2) { Fail "Could not obtain $script:DlssFile." }
 Write-Ok "addons ready"
 
-# cache a copy of the uninstall script for offline use
+# keep a copy of the uninstall script for offline use
 $cu = Join-Path $script:CacheDir 'uninstall.ps1'
 if (-not (Test-Path $cu)) {
-    Invoke-FileDownload @("$($script:RawUrl)/uninstall.ps1") $cu 1KB | Out-Null
+    $src = Join-Path $PSScriptRoot 'uninstall.ps1'
+    if (Test-Path $src) {
+        Copy-Item $src $cu -Force
+    } else {
+        Get-Artifact 'uninstall.ps1' @("$($script:RawUrl)/uninstall.ps1") 1KB | Out-Null
+    }
 }
 
 if ($needNvidia) {
     $nvidiaZip = Join-Path $script:CacheDir 'nvidia.zip'
-    if (Test-Path $nvidiaZip) {
-        # keep
-    } else {
-        $ok = Invoke-FileDownload @("$($script:ReleaseUrl)/nvidia.zip") $nvidiaZip ([long]100MB)
+    if (-not (Test-Path $nvidiaZip)) {
+        $ok = Get-Artifact 'nvidia.zip' @("$($script:ReleaseUrl)/nvidia.zip") ([long]100MB)
         if (-not $ok) {
             Write-Info "single nvidia.zip not available - trying the split parts..."
-            $p1 = Join-Path $script:CacheDir 'nvidia-part1.zip'
-            $p2 = Join-Path $script:CacheDir 'nvidia-part2.zip'
-            $a = Invoke-FileDownload @("$($script:ReleaseUrl)/nvidia-part1.zip") $p1 ([long]70MB)
-            $b = Invoke-FileDownload @("$($script:ReleaseUrl)/nvidia-part2.zip") $p2 ([long]70MB)
-            if ($a -and $b) {
+            $p1 = Get-Artifact 'nvidia-part1.zip' @("$($script:ReleaseUrl)/nvidia-part1.zip") ([long]70MB)
+            $p2 = Get-Artifact 'nvidia-part2.zip' @("$($script:ReleaseUrl)/nvidia-part2.zip") ([long]70MB)
+            if ($p1 -and $p2) {
                 $out = [System.IO.File]::Create($nvidiaZip)
                 [System.IO.File]::OpenRead($p1).CopyTo($out)
                 [System.IO.File]::OpenRead($p2).CopyTo($out)
                 $out.Close()
             }
-            else { Fail "Could not download the NVIDIA DLSS SDK files (nvidia.zip or nvidia-part1/2.zip)." }
+            else { Fail "Could not obtain the NVIDIA DLSS SDK files (nvidia.zip or nvidia-part1/2.zip)." }
         }
     }
     Write-Ok "NVIDIA DLSS SDK (310.8) ready"
@@ -472,24 +495,44 @@ switch ($iniResult) {
 
 # ---------------------------- 9. uninstall bat --------------------------------
 if ($script:GameRoot) {
+    if ($cu) { Copy-Item $cu (Join-Path $script:GameRoot 'uninstall.ps1') -Force }
     $uninstBat = Join-Path $script:GameRoot 'uninstall-dlss5.bat'
-    $bat = @"
+    if ($script:Offline) {
+        $bat = @"
 @echo off
 setlocal
 cd /d "%~dp0"
 rem FF7 Rebirth DLSS 5 (RenodX) uninstaller - generated by the installer
 set "PS=powershell.exe"
 where pwsh.exe >nul 2>nul && set "PS=pwsh.exe"
-"%PS%" -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol=3072; iwr -UseBasicParsing '$($script:RawUrl)/uninstall.ps1' -OutFile uninstall-dlss5.ps1"
-if not exist uninstall-dlss5.ps1 if exist "%LOCALAPPDATA%\FF7R-DLSS5Kit\uninstall.ps1" copy /y "%LOCALAPPDATA%\FF7R-DLSS5Kit\uninstall.ps1" uninstall-dlss5.ps1 >nul
-if not exist uninstall-dlss5.ps1 (
-  echo Could not obtain uninstall.ps1. Check your internet connection, or re-run the installer.
+if not exist uninstall.ps1 (
+  echo uninstall.ps1 is missing next to this file.
+  echo Re-run the installer from the mod folder and it will restore it.
   pause
   exit /b 1
 )
-"%PS%" -NoProfile -ExecutionPolicy Bypass -File uninstall-dlss5.ps1
+"%PS%" -NoProfile -ExecutionPolicy Bypass -File uninstall.ps1
 pause
 "@
+    } else {
+        $bat = @"
+@echo off
+setlocal
+cd /d "%~dp0"
+rem FF7 Rebirth DLSS 5 (RenodX) uninstaller - generated by the installer
+set "PS=powershell.exe"
+where pwsh.exe >nul 2>nul && set "PS=pwsh.exe"
+if not exist uninstall.ps1 "%PS%" -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol=3072; iwr -UseBasicParsing '$($script:RawUrl)/uninstall.ps1' -OutFile uninstall.ps1"
+if not exist uninstall.ps1 if exist "%LOCALAPPDATA%\FF7R-DLSS5Kit\uninstall.ps1" copy /y "%LOCALAPPDATA%\FF7R-DLSS5Kit\uninstall.ps1" uninstall.ps1 >nul
+if not exist uninstall.ps1 (
+  echo Could not obtain uninstall.ps1. Re-run the installer.
+  pause
+  exit /b 1
+)
+"%PS%" -NoProfile -ExecutionPolicy Bypass -File uninstall.ps1
+pause
+"@
+    }
     [System.IO.File]::WriteAllText($uninstBat, ($bat -replace "`n", "`r`n"), (New-Object System.Text.UTF8Encoding($false)))
     Write-Ok "Created $uninstBat (double-click it later to remove everything)"
 }
@@ -529,7 +572,7 @@ if ($allGood) {
     Write-Host "can also enable 'Neural Uplift' in the same panel." -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "To undo everything later, double-click uninstall-dlss5.bat in the game folder." -ForegroundColor DarkGray
-    Write-Host "(install.ps1 / install.bat in the game folder can be deleted - they are only needed for re-installs.)" -ForegroundColor DarkGray
+    Write-Host "(the installer files can be deleted after a successful install - they are only needed for re-installs.)" -ForegroundColor DarkGray
 } else {
     Write-Warn "Install finished with problems - check the messages above."
 }
