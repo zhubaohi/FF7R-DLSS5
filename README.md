@@ -30,10 +30,10 @@ Files are downloaded from this GitHub repo (ReShade additionally falls back to t
 Copy and paste this single line into PowerShell or cmd and run it. It fetches the installer from this repo and runs it, so this method needs internet:
 
 ```
-powershell -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol=3072; $s = Join-Path $env:TEMP 'ff7r-dlss5-install.ps1'; iwr 'https://raw.githubusercontent.com/zhubaohi/FF7R-DLSS5/main/install.ps1' -UseBasicParsing -OutFile $s; & $s"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol=3072; iwr 'https://raw.githubusercontent.com/zhubaohi/FF7R-DLSS5/main/install.ps1' -UseBasicParsing -OutFile ([Environment]::GetEnvironmentVariable('TEMP') + '\ff7r-dlss5-install.ps1'); & ([Environment]::GetEnvironmentVariable('TEMP') + '\ff7r-dlss5-install.ps1')"
 ```
 
-The installer finds your game automatically (Steam and Epic installs) or asks you to paste the game folder path. To point at a specific folder, replace the final `& $s` with `& $s -GameDir 'C:\path\to\your game folder'`.
+The installer finds your game automatically (Steam and Epic installs) or asks you to paste the game folder path. To point at a specific folder, add ` -GameDir 'C:\path\to\your game folder'` just before the closing double quote.
 
 ## Requirements
 
