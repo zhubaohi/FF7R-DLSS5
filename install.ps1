@@ -318,9 +318,12 @@ if ($script:GameRoot) {
     }
 }
 $needNvidia = $true
-if ($nvGameDir) { Write-Ok "your game already ships the NVIDIA files - no download needed" }
+if ($nvGameDir) {
+    Write-Ok "your game already ships the NVIDIA files - they will be copied next to the addon (no download needed)"
+    $needNvidia = $false
+}
 elseif (Test-Path (Join-Path $script:Win64 'nvngx_dlssnr.dll')) {
-    Write-Ok "NVIDIA files already sit next to the addon - no download needed"
+    Write-Ok "NVIDIA files already sit next to the addon - nothing to do"
     $needNvidia = $false
 }
 
