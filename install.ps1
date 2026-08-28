@@ -348,24 +348,36 @@ if (-not (Test-Path $cu)) {
     }
 }
 
+# The offline bundle may carry the 14 SDK files as a plain folder
+# (files\nvidia) so the pack never contains a zip inside a zip.
+$script:BundleNvDir = $null
+if ($script:OfflineDir) {
+    $d = Join-Path $script:OfflineDir 'nvidia'
+    if (Test-Path (Join-Path $d 'nvngx_dlssnr.dll')) { $script:BundleNvDir = $d }
+}
+
 if ($needNvidia) {
-    $nvidiaZip = Join-Path $script:CacheDir 'nvidia.zip'
-    if (-not (Test-Path $nvidiaZip)) {
-        $ok = Get-Artifact 'nvidia.zip' @("$($script:ReleaseUrl)/nvidia.zip") ([long]100MB)
-        if (-not $ok) {
-            Write-Info "single nvidia.zip not available - trying the split parts..."
-            $p1 = Get-Artifact 'nvidia-part1.zip' @("$($script:ReleaseUrl)/nvidia-part1.zip") ([long]70MB)
-            $p2 = Get-Artifact 'nvidia-part2.zip' @("$($script:ReleaseUrl)/nvidia-part2.zip") ([long]70MB)
-            if ($p1 -and $p2) {
-                $out = [System.IO.File]::Create($nvidiaZip)
-                [System.IO.File]::OpenRead($p1).CopyTo($out)
-                [System.IO.File]::OpenRead($p2).CopyTo($out)
-                $out.Close()
+    if ($script:BundleNvDir) {
+        Write-Ok "NVIDIA DLSS SDK (310.8) from the local bundle folder"
+    } else {
+        $nvidiaZip = Join-Path $script:CacheDir 'nvidia.zip'
+        if (-not (Test-Path $nvidiaZip)) {
+            $ok = Get-Artifact 'nvidia.zip' @("$($script:ReleaseUrl)/nvidia.zip") ([long]100MB)
+            if (-not $ok) {
+                Write-Info "single nvidia.zip not available - trying the split parts..."
+                $p1 = Get-Artifact 'nvidia-part1.zip' @("$($script:ReleaseUrl)/nvidia-part1.zip") ([long]70MB)
+                $p2 = Get-Artifact 'nvidia-part2.zip' @("$($script:ReleaseUrl)/nvidia-part2.zip") ([long]70MB)
+                if ($p1 -and $p2) {
+                    $out = [System.IO.File]::Create($nvidiaZip)
+                    [System.IO.File]::OpenRead($p1).CopyTo($out)
+                    [System.IO.File]::OpenRead($p2).CopyTo($out)
+                    $out.Close()
+                }
+                else { Fail "Could not obtain the NVIDIA DLSS SDK files (nvidia.zip or nvidia-part1/2.zip)." }
             }
-            else { Fail "Could not obtain the NVIDIA DLSS SDK files (nvidia.zip or nvidia-part1/2.zip)." }
         }
+        Write-Ok "NVIDIA DLSS SDK (310.8) ready"
     }
-    Write-Ok "NVIDIA DLSS SDK (310.8) ready"
 }
 
 # ---------------------------- 5. install reshade ----------------------------
@@ -409,13 +421,14 @@ Write-Ok "$script:DlssFile (DLSS 5 Neural Rendering)"
 # ---------------------------- 7. nvidia dlls ---------------------------------
 if ($needNvidia) {
     Write-Step "Installing NVIDIA DLSS SDK files (310.8)"
-    if (-not (Test-Path $nvidiaZip)) {
-        $nvidiaZip = Join-Path $script:CacheDir 'nvidia.zip'
-    }
-    $stage = Join-Path $script:CacheDir 'nvidia'
-    if (-not (Test-Path $stage)) {
-        New-Item -ItemType Directory -Force -Path $stage | Out-Null
-        Expand-Archive -Path $nvidiaZip -DestinationPath $stage -Force
+    if ($script:BundleNvDir) {
+        $stage = $script:BundleNvDir
+    } else {
+        $stage = Join-Path $script:CacheDir 'nvidia'
+        if (-not (Test-Path $stage)) {
+            New-Item -ItemType Directory -Force -Path $stage | Out-Null
+            Expand-Archive -Path $nvidiaZip -DestinationPath $stage -Force
+        }
     }
     $missing = @()
     foreach ($dll in $script:NvidiaFiles) {
