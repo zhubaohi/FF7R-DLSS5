@@ -28,7 +28,7 @@ Files are downloaded from this GitHub repo (ReShade additionally falls back to t
 ## Requirements
 
 * FINAL FANTASY VII REBIRTH on **Steam or Epic Games** (only the Steam install has been tested; if the installer can't find your Epic install it will ask for the path)
-* An **NVIDIA RTX 50 series GPU** (RTX 5070 / 5080 / 5090 or newer). From player reports, DLSS 5 Neural Rendering only runs on 50 series hardware. Older cards may not be able to run this mod
+* An **NVIDIA RTX 50 series GPU** . From player reports, DLSS 5 Neural Rendering only runs on 50 series hardware. Older cards may not be able to run this mod
 * Internet connection during install (about 160 MB, mostly the NVIDIA files, only if your game doesn't already ship them)
 * Recent NVIDIA driver. Driver **616.56 or newer** if you want the **Neural Uplift** option on RTX 50 series cards
 * If you already run ReShade 6.8 or newer, the installer keeps it. An older ReShade gets an update offer. If another proxy uses `d3d12.dll` in your game folder, expect possible conflicts
