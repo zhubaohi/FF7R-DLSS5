@@ -37,10 +37,10 @@ $ProgressPreference = 'SilentlyContinue'
 $script:Yes = [bool]$Yes
 
 # ---------------------------- configuration --------------------------------
-# Default repo when the script is run directly (normally install.bat passes
-# -RepoUrl).  If you run install.ps1 yourself, set this to your repo.
+# Default repo when the script is run directly without -RepoUrl (for example
+# the one line command from the README).  install.bat passes -RepoUrl too.
 $script:RepoUrl = $RepoUrl.TrimEnd('/')
-if (-not $script:RepoUrl) { $script:RepoUrl = 'https://github.com/YOUR_GITHUB_USERNAME/FF7R-DLSS5' }
+if (-not $script:RepoUrl) { $script:RepoUrl = 'https://github.com/zhubaohi/FF7R-DLSS5' }
 $script:RepoIsPlaceholder = $script:RepoUrl -match 'YOUR_GITHUB_USERNAME'
 $script:ReleaseUrl = "$script:RepoUrl/releases/download/v1"
 $script:RawUrl     = "$script:RepoUrl/raw/main"
