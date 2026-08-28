@@ -2,9 +2,9 @@
 
 **What is this?** A one click install that adds NVIDIA **DLSS 5 "Neural Rendering"** to *FINAL FANTASY VII Rebirth* on PC: neural upscaling and relighting on top of the DLSS the game already ships, driven by [ReShade](https://github.com/crosire/reshade) 6.8, [RenoDX](https://github.com/clshortfuse/renodx) (the official FF7 Rebirth build) and the community **"DLSS 5 Neural Rendering" addon v2.5** from the RenoDX Discord.
 
-> 鈿狅笍 **EXPERIMENTAL.** The DLSS 5 addon is an early community build. Expect rough edges and updates. This project is not affiliated with Square Enix, NVIDIA or the RenoDX project.
+> **EXPERIMENTAL.** The DLSS 5 addon is an early community build. Expect rough edges and updates. This project is not affiliated with Square Enix, NVIDIA or the RenoDX project.
 >
-> **Repo:** https://github.com/zhubaohi/FF7R-DLSS5 路 **Release assets:** https://github.com/zhubaohi/FF7R-DLSS5/releases/tag/v1 路 **Install file for players:** https://raw.githubusercontent.com/zhubaohi/FF7R-DLSS5/main/install.bat
+> **Repo:** https://github.com/zhubaohi/FF7R-DLSS5 | **Release assets:** https://github.com/zhubaohi/FF7R-DLSS5/releases/tag/v1 | **Install file for players:** https://raw.githubusercontent.com/zhubaohi/FF7R-DLSS5/main/install.bat
 
 ## Install (players): 2 steps
 
@@ -25,6 +25,16 @@ That's all. No administrator rights needed, no manual file copying. The bat down
 
 Files are downloaded from this GitHub repo (ReShade additionally falls back to the official reshade.me) and are cached in `%LOCALAPPDATA%\FF7R-DLSS5Kit`. The game folder only receives the files the mod actually needs.
 
+## Install with one command (optional, terminal users)
+
+Copy and paste this single line into PowerShell or cmd and run it. It fetches the installer from this repo and runs it, so this method needs internet:
+
+```
+powershell -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol=3072; $s = Join-Path $env:TEMP 'ff7r-dlss5-install.ps1'; iwr 'https://raw.githubusercontent.com/zhubaohi/FF7R-DLSS5/main/install.ps1' -UseBasicParsing -OutFile $s; & $s"
+```
+
+The installer finds your game automatically (Steam and Epic installs) or asks you to paste the game folder path. To point at a specific folder, replace the final `& $s` with `& $s -GameDir 'C:\path\to\your game folder'`.
+
 ## Requirements
 
 * FINAL FANTASY VII REBIRTH on **Steam or Epic Games** (only the Steam install has been tested; if the installer can't find your Epic install it will ask for the path)
@@ -36,15 +46,15 @@ Files are downloaded from this GitHub repo (ReShade additionally falls back to t
 ## First in game run: how to check it works
 
 1. Start the game normally. Press **HOME** to open the ReShade overlay.
-2. **Add ons** tab 鈫?**DLSS 5 Neural Rendering** 鈫?make sure **Enable DLSS Neural Rendering** is checked (default: on).
+2. Open the **Add ons** tab, then **DLSS 5 Neural Rendering**, and make sure **Enable DLSS Neural Rendering** is checked (default: on).
 3. Read the status block at the bottom of that panel:
 
    | Line | Healthy value |
    |---|---|
    | `DLSSNR v310.8.0:` | `RUNNING` (not `STANDBY/FAILED`) |
-   | `NGX hooks` | `creates 鈥?| evaluations` counting up |
+   | `NGX hooks` | `creates ... | evaluations` counting up |
    | `Successful NR frames` | **counting up** (this is the one that matters) |
-   | `Latest NR NGX result` | `0x00000000` (not `0xBAD鈥) |
+   | `Latest NR NGX result` | `0x00000000` (not `0xBAD...`) |
 
 4. If it shows `STANDBY/FAILED`, click the **"Reset NR feature and clear failure latch"** button once and give the game a minute (it latches after the first failure).
 
@@ -64,13 +74,13 @@ Double click **`uninstall-dlss5.bat`** (the installer creates it in your game fo
 | Symptom | Cause | Fix |
 |---|---|---|
 | "Could not download install.ps1" | Offline, or GitHub unreachable | Check internet, re run |
-| "Could not download 鈥? for other files | Release assets temporarily unreachable, or your cache is stale | Re run later. Delete `%LOCALAPPDATA%\FF7R-DLSS5Kit` to force fresh downloads |
+| "Could not download ..." for other files | Release assets temporarily unreachable, or your cache is stale | Re run later. Delete `%LOCALAPPDATA%\FF7R-DLSS5Kit` to force fresh downloads |
 | `error code 225` in `ReShade.log` | Addon not loaded early enough | Re run `install.bat` (re applies the `LoadFromDllMain` fix). Verify `ReShade.ini` has `LoadFromDllMain=renodx-dlss5-v2.5.addon64` under `[ADDON]` |
 | `STANDBY/FAILED`, log says `nvngx_dlssnr.dll was not found beside the addon` | NVIDIA SDK files not next to the addon | Re run `install.bat` (copies the SDK set). Verify `nvngx_dlssnr.dll` is in `End\Binaries\Win64` |
 | `Successful NR frames: 0` forever | Feature init failed | Click **Reset NR feature and clear failure latch**, or restart the game. Check the **Log** tab |
 | No ReShade overlay (HOME does nothing) | ReShade missing or outdated | Re run `install.bat`. Verify the checklist said `ReShade 6.8.x installed` |
 | Game not auto detected (Epic or custom layout) | Install location not in the scanned paths | The installer will ask you to paste the game folder path |
-| SmartScreen / Defender warns | Unsigned executables (normal for ReShade and mods) | **More info 鈫?Run anyway**, or right click 鈫?Properties 鈫?**Unblock** |
+| SmartScreen / Defender warns | Unsigned executables (normal for ReShade and mods) | **More info, then Run anyway** (or right click, Properties, then **Unblock**) |
 
 ## What each piece is
 
@@ -95,4 +105,4 @@ Double click **`uninstall-dlss5.bat`** (the installer creates it in your game fo
 
 ## Credits
 
-**Credits:** [crosire, ReShade](https://github.com/crosire/reshade) 路 [shortfuse (Carlos Lopez), RenoDX](https://github.com/clshortfuse/renodx) 路 **speedlemur**, the original DLSS 5 implementation (Control) 路 **lecram**, the generic DLSS 5 addon used in other games (this mod builds on that line of work) 路 "DLSS 5 Neural Rendering" addon v2.5 (RenoDX Discord) 路 NVIDIA DLSS/Streamline SDK 310.8.
+**Credits:** [crosire, ReShade](https://github.com/crosire/reshade) | [shortfuse (Carlos Lopez), RenoDX](https://github.com/clshortfuse/renodx) | **speedlemur**, the original DLSS 5 implementation (Control) | **lecram**, the generic DLSS 5 addon used in other games (this mod builds on that line of work) | "DLSS 5 Neural Rendering" addon v2.5 (RenoDX Discord) | NVIDIA DLSS/Streamline SDK 310.8.
