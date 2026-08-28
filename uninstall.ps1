@@ -117,7 +117,7 @@ function Get-GamePaths {
     $drives = @()
     try { $drives = (Get-PSDrive -PSProvider FileSystem).Root } catch {}
     foreach ($d in $drives) {
-        foreach ($base in @("$d`SteamLibrary\steamapps\common", "$d`Games", "$d`GOG Games", "$d`Program Files", "$d`Program Files (x86)", $d)) {
+        foreach ($base in @("$d`SteamLibrary\steamapps\common", "$d`Games", "$d`Program Files\Epic Games", "$d`Program Files (x86)\Epic Games", "$d`Program Files", "$d`Program Files (x86)", $d)) {
             $r = Resolve-GamePaths (Join-Path $base 'FINAL FANTASY VII REBIRTH')
             if ($r) { return $r }
         }

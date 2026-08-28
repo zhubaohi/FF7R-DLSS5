@@ -163,7 +163,7 @@ function Get-GamePaths {
     $drives = @()
     try { $drives = (Get-PSDrive -PSProvider FileSystem).Root } catch {}
     foreach ($d in $drives) {
-        foreach ($base in @("$d`SteamLibrary\steamapps\common", "$d`Games", "$d`GOG Games", "$d`Program Files", "$d`Program Files (x86)", $d)) {
+        foreach ($base in @("$d`SteamLibrary\steamapps\common", "$d`Games", "$d`Program Files\Epic Games", "$d`Program Files (x86)\Epic Games", "$d`Program Files", "$d`Program Files (x86)", $d)) {
             $r = Resolve-GamePaths (Join-Path $base 'FINAL FANTASY VII REBIRTH')
             if ($r) { return $r }
         }
@@ -232,6 +232,13 @@ Write-Step "Checking hardware"
 $nvGpus = @(Get-CimInstance Win32_VideoController | Where-Object { $_.Name -match 'NVIDIA' })
 if ($nvGpus.Count -gt 0) {
     foreach ($g in $nvGpus) { Write-Ok "NVIDIA GPU: $($g.Name)" }
+    $hasFifty = $false
+    foreach ($g in $nvGpus) { if ($g.Name -match 'RTX 5\d\d') { $hasFifty = $true } }
+    if (-not $hasFifty) {
+        Write-Warn "No RTX 50 series GPU found among your NVIDIA GPUs."
+        Write-Warn "From player reports, DLSS 5 Neural Rendering only runs on 50 series cards, so this mod may not work for you."
+        if (-not (Confirm-YesNo "Continue anyway?")) { Write-Host ""; Read-Host "Press Enter to exit" | Out-Null; exit 0 }
+    }
 } else {
     Write-Warn "No NVIDIA GPU detected. This mod requires an NVIDIA (RTX) GPU to work."
     if (-not (Confirm-YesNo "Continue anyway?")) { Write-Host ""; Read-Host "Press Enter to exit" | Out-Null; exit 0 }
