@@ -99,9 +99,9 @@ To **republish under a different GitHub account**: create a public repo (any nam
 | `ReShade_Setup_6.8.0_Addon.exe` | `AFE4C8F13048306307983B8B3D41D5BF00A86820440B0E57DEA10950E1176445` |
 | `renodx-ff7rebirth.addon64` | `9C1072103B63AB068C75468BE70324A0AF8249FE32C029868B91A704270B1520` |
 | `renodx-dlss5-v2.5.addon64` | `87AEF9DDD937C7241E6BF8D8EFEA0045D63559135E254C60DAB316DB3D3A4AEE` |
-| `nvidia.zip` | `2FE2583A7E4A75997CB0220AEEE1A68427AE8308E1ADEA3A229AF34FDE527491` |
+| `nvidia.zip` | `731FECECF3D66FB07A0302382B4B2AE6CC30055E5218EFD2C5DD590C9EDCDFDE` |
 
-*Verified on the reference machine during development. After uploading, run `Get-FileHash` on your uploaded files (or download them back) and compare — if you ever refresh a file (e.g. a newer RenoDX snapshot), update this table.*
+*`nvidia.zip` contains the complete NVIDIA Streamline/DLSS 310.8 set — 11 runtime DLLs plus 3 license text files (226 MB unpacked). Verified on the reference machine during development; if you ever refresh a file (e.g. a newer RenoDX snapshot or SDK), re-check with `Get-FileHash` and update this table.*
 
 ## What each piece is
 
@@ -110,7 +110,7 @@ To **republish under a different GitHub account**: create a public repo (any nam
 | ReShade 6.8.0 (with add-on support) | official (reshade.me / this repo) | the hook layer that loads everything |
 | RenoDX — FF7 Rebirth build | official RenoDX snapshot | game-specific injections & fixes |
 | DLSS 5 Neural Rendering v2.5 | community build (RenoDX Discord) | the actual Neural Rendering post-pass |
-| NVIDIA DLSS/Streamline SDK 310.8 | the same DLLs the game ships in `Engine\Plugins\DLSSSubset` | included so the kit works on any install |
+| NVIDIA DLSS/Streamline SDK 310.8 | the same files the game ships in `Engine\Plugins\DLSSSubset` (11 DLLs + 3 license files) | installed in full so the kit works on any install |
 | `LoadFromDllMain` ini fix | found while troubleshooting | the FF7R game inits its DLSS SDK before device creation; ReShade 6.8's `[ADDON] LoadFromDllMain` makes the proxy load the addon from `DllMain` (process start), which is required for the addon to succeed |
 
 **Credits:** [crosire — ReShade](https://github.com/crosire/reshade) · [Carlos Lopez — RenoDX](https://github.com/clshortfuse/renodx) · "DLSS 5 Neural Rendering" addon (v2.5) from the RenoDX Discord · NVIDIA DLSS/Streamline SDK 310.8.
