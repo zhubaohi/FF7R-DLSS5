@@ -8,10 +8,9 @@
 #  an official reshade.me fallback):
 #    1. ReShade 6.8.0                     (silent install, only if missing)
 #    2. RenoDX - FF7 Rebirth build        (official snapshot)
-#    3. renodx-dlss5-v2.5                 ("DLSS 5 Neural Rendering" addon)
-#    4. NVIDIA DLSS 310.8 SDK files       (uses your game's own copies when
-#                                          available, otherwise the set from
-#                                          the GitHub repo)
+#    3. renodx-dlss5                     ("DLSS 5 Neural Rendering" addon, latest build)
+#    4. NVIDIA DLSS 310.8 SDK files       (the complete set this mod carries,
+#                                          copied next to the addon)
 #    5. ReShade.ini fix:  [ADDON] LoadFromDllMain = the DLSS addon.
 #       This is the fix for the in-game "error code 225" and is MANDATORY.
 #       Your original ReShade.ini is backed up as ReShade.ini.dlss5kit.bak.
@@ -58,7 +57,7 @@ $script:Offline = [bool]$script:OfflineDir
 
 $script:SetupFile    = 'ReShade_Setup_6.8.0_Addon.exe'
 $script:MainFile     = 'renodx-ff7rebirth.addon64'
-$script:DlssFile     = 'renodx-dlss5-v2.5.addon64'
+$script:DlssFile     = 'renodx-dlss5.addon64'
 # The complete NVIDIA Streamline/DLSS 310.8 set (14 files): the 11 runtime
 # DLLs plus 3 license files.  Copying the whole set is what was tested and
 # proven working in-game, so the installer installs all of it.
@@ -427,6 +426,11 @@ Copy-Item $c1 (Join-Path $script:Win64 $script:MainFile) -Force
 Write-Ok "$script:MainFile (RenoDX for FF7 Rebirth)"
 Copy-Item $c2 (Join-Path $script:Win64 $script:DlssFile) -Force
 Write-Ok "$script:DlssFile (DLSS 5 Neural Rendering)"
+$legacyDlss = Join-Path $script:Win64 'renodx-dlss5-v2.5.addon64'
+if (Test-Path $legacyDlss) {
+    Remove-Item $legacyDlss -Force
+    Write-Ok "removed the old renodx-dlss5-v2.5.addon64 (replaced by $script:DlssFile)"
+}
 
 # ---------------------------- 7. nvidia dlls ---------------------------------
 if ($needNvidia) {
@@ -478,11 +482,14 @@ function Update-LoadFromDllMain([string]$iniPath, [string]$addonFile) {
             if ([int]$ch -eq 0) { $entries += $cur; $cur = '' } else { $cur += $ch }
         }
         $entries += $cur
-        if ($entries -notcontains $addonFile) {
-            $entries += $addonFile
-            $lines[$keyIdx] = $keyPrefix + ($entries -join [string][char]0)
+        # drop names this mod has since replaced (old release builds)
+        $entries = @($entries | Where-Object { $_ -ne 'renodx-dlss5-v2.5.addon64' })
+        if ($entries -notcontains $addonFile) { $entries += $addonFile }
+        $newLine = $keyPrefix + ($entries -join [string][char]0)
+        if ($newLine -ne $lines[$keyIdx]) {
+            $lines[$keyIdx] = $newLine
             [System.IO.File]::WriteAllLines($iniPath, $lines)
-            return 'added'
+            return 'updated'
         }
         return 'already'
     }
@@ -502,6 +509,7 @@ $iniResult = Update-LoadFromDllMain $reshadeIni $script:DlssFile
 switch ($iniResult) {
     'already' { Write-Ok "LoadFromDllMain already contains $script:DlssFile" }
     'added'   { Write-Ok "Added LoadFromDllMain=$script:DlssFile to ReShade.ini" }
+    'updated' { Write-Ok "Updated LoadFromDllMain to $script:DlssFile (replaced the old entry)" }
     'created' { Write-Ok "Created [ADDON] section with LoadFromDllMain=$script:DlssFile" }
 }
 

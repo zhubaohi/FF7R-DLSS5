@@ -2,7 +2,7 @@
 #  FF7 Rebirth - DLSS 5 Neural Rendering (RenodX) - Uninstaller
 #
 #  Removes what install.ps1 added:
-#    - renodx-dlss5-v2.5.addon64
+#    - renodx-dlss5.addon64 (plus the legacy renodx-dlss5-v2.5.addon64)
 #    - renodx-ff7rebirth.addon64           (kept only with -KeepRenoDX)
 #    - the NVIDIA 310.8 files: 11 nvngx_*/sl.* DLLs + 3 license txts
 #      (kept only with -KeepNvidiaDlls)
@@ -29,7 +29,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $script:Yes = [bool]$Yes
-$script:DlssFile   = 'renodx-dlss5-v2.5.addon64'
+$script:DlssFile   = 'renodx-dlss5.addon64'
+$script:DlssLegacy = 'renodx-dlss5-v2.5.addon64'
 $script:MainFile   = 'renodx-ff7rebirth.addon64'
 # The complete NVIDIA Streamline/DLSS 310.8 set (14 files): 11 runtime DLLs
 # + 3 license files (matches what install.ps1 installs).
@@ -139,9 +140,12 @@ $reshadeIni  = Join-Path $script:Win64 'ReShade.ini'
 Write-Host "  [i] Uninstalling from: $($script:Win64)" -ForegroundColor Cyan
 
 # --- addons -------------------------------------------------------------
-if (Test-Path (Join-Path $script:Win64 $script:DlssFile)) {
-    Remove-Item (Join-Path $script:Win64 $script:DlssFile) -Force
-    Write-Host "  [OK] removed $script:DlssFile" -ForegroundColor Green
+foreach ($dlssName in @($script:DlssFile, $script:DlssLegacy)) {
+    $p = Join-Path $script:Win64 $dlssName
+    if (Test-Path $p) {
+        Remove-Item $p -Force
+        Write-Host "  [OK] removed $dlssName" -ForegroundColor Green
+    }
 }
 if (-not $KeepRenoDX -and (Test-Path (Join-Path $script:Win64 $script:MainFile))) {
     Remove-Item (Join-Path $script:Win64 $script:MainFile) -Force
@@ -184,7 +188,7 @@ if (Test-Path $reshadeIni) {
                     if ([int]$ch -eq 0) { $entries += $cur; $cur = '' } else { $cur += $ch }
                 }
                 $entries += $cur
-                $kept = @($entries | Where-Object { $_ -ne $script:DlssFile })
+                $kept = @($entries | Where-Object { ($_ -ne $script:DlssFile) -and ($_ -ne $script:DlssLegacy) })
                 if ($kept.Count -ne $entries.Count) {
                     if ($kept.Count -gt 0) { $lines[$i] = $keyPrefix + ($kept -join [string][char]0) }
                     else { $lines[$i] = $null }
